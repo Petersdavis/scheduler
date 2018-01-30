@@ -1,0 +1,598 @@
+import React, { Component } from 'react';
+import Modal from 'react-modal';
+import logo from './logo.svg';
+import './App.css';
+import {validatePrice} from './boilerplate.js'
+import {Row, Col, Button, FormControl} from 'react-bootstrap';
+
+
+
+class GetShift extends React.Component{
+	render(){
+		return(<div></div>);
+	}
+}
+
+class EditEmployee extends React.Component{
+	render(){
+		return(<div></div>);
+	}
+}
+
+class GetSales extends React.Component{
+	constructor(props){
+		super(props);
+		
+		this.openModal = this.openModal.bind(this);
+		this.closeModal = this.closeModal.bind(this);
+		this.handleSalesChange = this.handleSalesChange.bind(this);
+		
+	}
+	
+	openModal(){
+		this.props.setSales();
+	}
+	
+	closeModal(){
+		this.props.closeModal()
+	}
+	handleSalesChange(e){
+	 this.props.saveSales(e.target.value, this.props.day);	
+	}
+		
+	render(){
+		const appElement = document.getElementById('root');
+		const sales = this.props.sales
+		const isOpen = this.props.isOpen
+		const day = this.props.day
+		const week = ['Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] 
+				
+		return(<div>
+			<Modal 
+				appElement = {appElement}
+				isOpen={isOpen}
+				onRequestClose={this.closeModal}
+				contentLabel="Set Sales">
+				<h2> Set Total Sales for {week[day]} </h2>
+				
+				<FormControl 
+					bsSize = "lg"
+					value = {this.props.sales[this.props.day]}
+					onChange={this.handleSalesChange}
+					>
+					
+					</FormControl>
+				
+			</Modal>
+			
+			
+			</div>);
+	}
+}
+
+class GetTips extends React.Component{
+	render(){
+		return(<div></div>);
+	}
+}
+
+
+class NewEmployee extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleNewEmployee = this.handleNewEmployee.bind(this);
+	}
+	
+	handleNewEmployee(e){
+	 this.props.handleNewEmployee(e);	
+	}
+	
+	
+	render(){
+		return(
+		<div>
+			<Button	
+			bsStyle="primary" 
+			bsSize="large" 
+			block
+			onClick= {this.handleNewEmployee}
+			>
+				New Employee
+			</Button>
+		</div>);
+	}
+	
+}
+
+class TitleRow extends React.Component{
+	
+	
+	render(){
+		const week = ['Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+		const days = [];
+		
+		week.forEach((text)=> {
+		days.push(
+			<div style = {{display:"inline-block", width:100/7 +"%"}}>
+				{text}
+			</div>)
+		});
+		
+		return(
+		<div>
+		<Row>
+		<Col xs = {2}>
+		</Col>
+		<Col xs = {8}>
+			{days}
+		
+		</Col>
+		<Col xs = {2}>
+			Totals:
+		</Col>
+		</Row>
+	 	</div>
+	 	)
+	}	
+}
+
+class EmployeeRow extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleNameClick = this.handleNameClick.bind(this);
+		this.handleShiftClick = this.handleShiftClick.bind(this);
+		this.handleNewShiftClick = this.handleNewShiftClick.bind(this);
+	}
+	
+	handleNameClick(e){
+		this.props.handleNameClick(e.target.employee_id);
+	}
+	
+	handleShiftClick(e){
+		this.props.handleShiftClick(e.target.shift_id);
+	}
+	
+	handleNewShiftClick(e){
+		this.props.handleNewShiftClick(e.target.day);
+	}
+	
+	render(){
+		const employee = this.props.employee
+		const key = this.props.key
+		var x, y;
+		var days = []; 
+		for(x=0;x<7;++x){
+			days.push(
+				<div style = {{display:"inline-block", width:100/7 +"%"}}>
+					<EmployeeDay
+						employee = {employee}
+						day = {x}
+					/>
+				</div>);
+				
+		}
+
+		var total_hours = 0;
+		for(x=0;x<6;++x){
+		  for(y=0;y<employee.shifts[x].length;++y){
+		  	total_hours = total_hours + employee.shifts[x][y].hours;  
+		  }
+		}
+		
+
+		return(
+		<div>
+		<Row>
+		<Col xs = {2}>
+		<Button 
+			bsStyle="default"
+			block
+			onClick = {this.handleNameClick}
+			employee_id = {employee.id}
+		> {employee.name}
+		</Button>
+		</Col>
+		<Col xs = {8}>
+			{days}
+		</Col>
+		<Col xs = {2}>
+			{total_hours}
+		</Col>
+		</Row>
+	 	</div>
+	 	)
+	}
+}
+
+class EmployeeDay extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleShiftClick = this.handleShiftClick.bind(this);
+		this.handleNewShiftClick = this.handleNewShiftClick.bind(this);
+	}
+	
+	handleShiftClick(e){
+		this.props.handleShiftClick(e.target.shift_id);
+	}
+	
+	handleNewShiftClick(e){
+		this.props.handleNewShiftClick(e.target.day);
+	}
+		
+	
+	render(){
+		const employee = this.props.employee
+		const key = this.props.employee.id + "_" + this.props.day
+		const day = this.props.day
+		var x;
+		var shifts = [];
+		for(x=0;x<employee.shifts[day].length;++x){
+			shifts.push(
+				<Button
+					bsStyle="default"
+					onClick = {this.handleShiftClick}
+					block
+				> {employee.shifts[day][x].start_time} -- {employee.shifts[day][x].start_time}
+				
+				</Button>
+				);
+		}
+		if(employee.shifts[day].length < 2){
+			shifts.push(
+				<Button
+					bsStyle = "primary"
+					onClick = {this.handleNewShiftClick}
+					day = {day}
+					employee_id = {employee.id}
+					> ++ Add Shift 
+				</Button>
+				);
+		}
+			
+		return(<div>
+			{shifts}
+			</div>);
+	}
+}
+
+
+class SalesTotal extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleSalesClick = this.handleSalesClick.bind(this);
+	}
+	
+	handleSalesClick(e){
+		this.props.onClickHandler(e.target.getAttribute("day"));
+	}
+	
+	render(){
+		var x;
+		var days = [];
+		var total_sales = 0;
+		var formated_sales;
+		const sales = this.props.sales
+		for(x=0;x<6;++x){
+			total_sales = total_sales + sales[x];
+			formated_sales = validatePrice(sales[x]);
+			days.push(
+				<div style = {{display:"inline-block", width:100/7 +"%"}}>
+					<Button 
+					onClick={this.handleSalesClick}
+					key = {"sales_"+x}
+					day = {x}
+					>{formated_sales}
+					
+					</Button>
+				
+				</div>
+				
+				)
+			
+			
+		}
+		
+		return(<div>
+		<Row>
+		<Col xs = {2}>
+		Sales:
+		</Col>
+		<Col xs = {8}>
+			{days}
+		
+		</Col>
+		<Col xs = {2}>
+			{total_sales}
+		</Col>
+		</Row>
+	 	</div>);
+	}
+}
+
+
+class HoursTotal extends React.Component{
+		constructor(props){
+		super(props);
+	}
+	
+	render(){
+		var x, y, z;
+		var days = [];
+		var day_hours;
+		var total_hours = 0;
+		const employees = this.props.employees
+		for(x=0;x<6;++x){
+			day_hours = 0
+			for(y=0;y<employees.length;++y){
+			  for(z=0;z<employees[y].shifts[x].length;++z){
+			  	 total_hours=total_hours+employees[y].shifts[z].hours;
+			  	 day_hours = day_hours + employees[y].shifts[z].hours;
+			  }
+				
+			}
+			days.push(
+				<div style = {{display:"inline-block", width:100/7 +"%"}}>
+					<Button 
+						
+					>{day_hours} Hrs
+					
+					</Button>
+				
+				</div>
+				
+			);
+		}
+			
+		
+		return(<div>
+		<Row>
+		<Col xs = {2}>
+		Hours:
+		</Col>
+		<Col xs = {8}>
+			{days}
+		
+		</Col>
+		<Col xs = {2}>
+			{total_hours}
+		</Col>
+		</Row>
+	 	</div>);
+	}
+	
+}
+
+
+class TipsTotal extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleTipsClick = this.handleTipsClick.bind(this);
+	}
+	
+	handleTipsClick(e){
+		this.props.handleTipsClick(e.target.shift_id);
+	}
+	
+	render(){
+		var x;
+		var days = [];
+		var total_tips = 0;
+		const tips = this.props.tips;
+		for(x=0;x<6;++x){
+			total_tips = total_tips + tips[x];
+			days.push(
+				<div style = {{display:"inline-block", width:100/7 +"%"}}>
+					<Button 
+					onClick={this.handleTipsClick}
+					day = {x}
+					>{tips[x]}
+					
+					</Button>
+				
+				</div>
+				
+				)
+			
+			
+		}
+		
+		return(<div>
+		<Row>
+		<Col xs = {2}>
+		Tips:
+		</Col>
+		<Col xs = {8}>
+			{days}
+		
+		</Col>
+		<Col xs = {2}>
+			{total_tips}
+		</Col>
+		</Row>
+	 	</div>);
+	}
+}
+
+
+class Schedule extends React.Component{
+		
+	constructor(props){
+		super(props);
+		this.state = {
+			employees:[
+			{name:"First Employee", id:0, shifts:[[],[],[],[],[],[],[]]},
+			{name:"Second Employee", id:1, shifts:[[],[],[],[],[],[],[]]}
+			],
+			totals: {
+				sales:Array(7).fill(0),
+				tips:Array(7).fill(0)
+			},
+			
+			modals: {
+				setShift:false,
+				setShift_shift:{},
+				setSales:false,
+				setSales_day:0,
+				setTips:false,
+				setTips_day:0,
+				editEmployee:false,
+				editEmployee_id:0
+			},
+			
+			App:{
+				AppElement: document.getElementById('root')
+			}
+		};
+		
+		this.openEdit = this.openEdit.bind(this);
+		this.closeEdit = this.closeEdit.bind(this);
+		this.addEmployee = this.addEmployee.bind(this);
+		this.setSales = this.setSales.bind(this);  
+		this.saveSales = this.saveSales.bind(this);
+		this.closeSales = this.closeSales.bind(this);
+		
+		
+		
+		
+    }
+    
+    addEmployee(){
+    	var newEmployee = {}
+    	var employees = this.state.employees
+    	newEmployee.name=""
+    	newEmployee.id = this.state.employees[this.state.employees.length-1].id+1
+    	newEmployee.shifts = Array(7).fill([]);
+    	employees.push(newEmployee);
+    	this.setState({employees:employees})   	
+    	
+    }
+    
+    onNameClick(id){
+      	
+    }
+    
+    openEdit(id){
+    	this.setState({editEmployee: true});
+    	this.setState({editEmployee_id:id});    	
+    }
+			
+    closeEdit(){
+    	this.setState({editEmployee: false});
+	}
+	
+	setSales(day){
+		const modals = this.state.modals;
+		modals.setSales=true;
+		modals.setSales_day = day;
+		this.setState({modals});
+		
+	}
+	
+	saveSales(value, day){
+		var totals = this.state.totals
+		totals.sales[day] = value;
+			
+		this.setState({totals:totals});	
+	}
+	
+	closeSales(){
+		var modals = this.state.modals;
+		modals.setSales = false;
+		
+		this.setState({modals});
+	}
+	
+	openTips(day){
+		this.setState({setTips: true});
+		this.setState({setTips_day:day});  
+	}
+	
+	closeTips(){
+		this.setState({setTips: false});
+	}
+	
+	
+	render(){
+	var rows = []
+	this.state.employees.forEach((employee)=>{
+	  rows.push(<EmployeeRow 
+	  	  		employee= {employee}
+	  	  		key = {employee.id}
+	  	  />)
+	  
+	});
+	
+	 return(
+	 	 <div>
+	 	 	<TitleRow />
+	 	 	{rows}
+	 	 	<NewEmployee 
+	 	 		handleNewEmployee = {this.addEmployee}
+	 	 		employees = {this.state.employees}
+	 	 		/>
+	 	 	<HoursTotal
+	 	 		employees = {this.state.employees}
+	 	 		/>
+	 	 	<SalesTotal
+	 	 		sales = {this.state.totals.sales}
+	 	 		onClickHandler = {this.setSales} />
+	 	 	<TipsTotal 
+	 	 		tips = {this.state.totals.tips}
+	 	 		onClickHandler = {this.setTips} />
+	 	 	
+	 	 	{/*Models : */}
+	 	 	<GetShift 
+	 	 		isOpen = {this.state.modals.setShift}
+	 	 		shift = {this.state.modals.setShift_shift}
+	 	 		appElement = "#root"
+	 	 		
+	 	 		
+	 	 	/>
+			<EditEmployee 
+				employees = {this.state.employees}
+				isOpen = {this.state.modals.editEmployee}
+				id = {this.state.modals.editEmployee_id}
+				/>
+			<GetSales 
+				saveSales = {this.saveSales}
+				closeModal = {this.closeSales}
+				sales = {this.state.totals.sales}
+				isOpen = {this.state.modals.setSales}
+				day = {this.state.modals.setSales_day}
+				appElement = {this.state.App.appElement}
+				/>
+			<GetTips 
+				tips = {this.state.totals.tips}
+				isOpen = {this.state.modals.setTips}
+				day = {this.state.modals.setTips_day}
+				/>
+	 	 		
+	 	 </div>
+	 	 
+	 	
+	 	 
+	  	
+	 
+	  );
+	};
+	
+	
+}
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1 className="App-title">Welcome to J.Fresco Scheduler</h1>
+        </header>
+        <div className="App-intro">
+           <Schedule />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default App;
