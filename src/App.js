@@ -1,10 +1,17 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
-import DatePicker from 'react-datepicker';
-import logo from './logo.svg';
 import './App.css';
-import {validatePrice} from './boilerplate.js'
-import {Row, Col, Button, FormControl} from 'react-bootstrap';
+import './bootstrap-theme.min.css';
+import './bootstrap.min.css';
+import './fonts.css';
+
+import './glyphicons-halflings-regular.svg';
+import './glyphicons-halflings-regular.eot';
+import './glyphicons-halflings-regular.ttf';
+import './glyphicons-halflings-regular.woff';
+import './glyphicons-halflings-regular.woff2';
+import {validatePrice} from './boilerplate.js';
+import {Glyphicon, Row, Col, Button, FormControl} from 'react-bootstrap';
 
 
 
@@ -18,11 +25,11 @@ class GetShift extends React.Component{
 		this.handleClick = this.handleClick.bind(this);
 		this.saveShift = this.saveShift.bind(this);
 		this.validateShift = this.validateShift.bind(this);
-		
+		this.handleDeleteClick = this.handleDeleteClick.bind(this);
 	}
-	
-	
-	
+	handleDeleteClick(e){
+		this.props.handleDeleteClick();
+	}
 	closeModal(){
 		this.props.closeModal()
 	}
@@ -35,8 +42,7 @@ class GetShift extends React.Component{
 	}
 	
 	handleMouseEnter(e){
-		console.log(e.target.getAttribute("time_index"));
-	 	this.props.handleMouseEnter(e.target.getAttribute("time_index"));
+		this.props.handleMouseEnter(e.target.getAttribute("time_index"));
 	}
 	
 	saveShift(e){
@@ -109,6 +115,9 @@ class GetShift extends React.Component{
 		var cur_time;
 		
 		var start_time 
+		if(!shift_helper.id){
+			shift_helper.id = -1
+		}
 		
 		if(shift_helper.start_time !== 0){
 			start_time= times[shift_helper.start_time.hour] + quarts[shift_helper.start_time.quart]
@@ -194,7 +203,16 @@ class GetShift extends React.Component{
 				isOpen={isOpen}
 				onRequestClose={this.closeModal}
 				contentLabel="Edit Employee">
-				<h2>Shift Time: {start_time}</h2>
+				<h2>Shift Time: {start_time}  
+				<Button
+					block
+					bsStyle = "default"
+					onClick = {this.handleDeleteClick}
+									
+					><Glyphicon glyph="trash" /> Delete
+				</Button>
+				
+				</h2>
 				<div style = {container_style}>
 				{rows}
 				</div>
@@ -221,10 +239,21 @@ class EditEmployee extends React.Component{
 	
 	
 	closeModal(){
+		var employees = this.props.employees;
+		var employee_id = this.props.id;
+		var employee, x;
+		for(x=0;x<employees.length;++x){
+			if(employees[x].id == employee_id){
+				employee = employees[x];
+			}
+		}
+		if(employee.name == ""){
+			this.props.deleteEmployee(employee_id)	
+		}
 		this.props.closeModal()
 	}
 	handleEmployeeChange(e){
-	 this.props.saveEmployee(e.target.value, e.target.getAttribute("employee_id"));	
+      this.props.saveEmployee(e.target.value, e.target.getAttribute("employee_id"));	
 	}
 	handleEmployeeDelete(e){
 	 this.props.deleteEmployee(e.target.getAttribute("employee_id"));	
@@ -235,6 +264,63 @@ class EditEmployee extends React.Component{
 		const employees = this.props.employees;
 		const employee_id = this.props.id;
 		const isOpen = this.props.isOpen;
+		const pos = this.props.pos;
+		const width = 600;
+		const height = 200;
+		var modal_style={
+			overlay: {
+			  position: 'fixed',
+			  top: 0,
+			  left: 0,
+			  right: 0,
+			  bottom: 0,
+			  backgroundColor: 'rgba(255, 255, 255, 0.75)'
+			},
+			content: {
+			  position: 'fixed',
+			  top: '40px',
+			  left: '40px',
+			  right: '40px',
+			  bottom: '40px',
+			  border: '1px solid #ccc',
+			  background: '#fff',
+			  overflow: 'none',
+			  WebkitOverflowScrolling: 'touch',
+			  borderRadius: '4px',
+			  outline: 'none',
+			  padding: '20px',
+			 
+			}
+		  };
+		if(isOpen){ 
+			console.log(pos.y + "..." +pos.x)
+		if(pos.y < height){
+			modal_style.content.top = pos.y +5;
+			modal_style.content.bottom = window.innerHeight - pos.y - height;
+			
+		}else if (pos.y > window.innerHeight - height){
+			modal_style.content.top = pos.y - height;
+			modal_style.content.bottom =window.innerHeight - pos.y ;
+		}else{
+			modal_style.content.top = pos.y - height/2;
+			modal_style.content.bottom =window.innerHeight -  pos.y - height/2;
+		}
+			
+		if(pos.x > window.innerWidth - width){
+			
+			modal_style.content.right =window.innerWidth- pos.x +5;
+			modal_style.content.left =pos.x - width;
+		} else if (pos.x < width){
+			modal_style.content.left = pos.x+5;
+			modal_style.content.right =window.innerWidth-pos.x-width;
+		}else{
+			modal_style.content.right = window.innerWidth-pos.x  - width/2;
+			modal_style.content.left = pos.x -width/2;
+			
+		}
+	  }
+		
+		
 		var x, employee;
 		
 		if(employee_id == -1){
@@ -248,13 +334,14 @@ class EditEmployee extends React.Component{
 			
 		return(<div>
 			<Modal 
+				style = {modal_style}
 				appElement = {appElement}
 				isOpen={isOpen}
 				onRequestClose={this.closeModal}
 				contentLabel="Edit Employee">
 				<h2> Edit Employee: </h2>
 				<Row>
-				<Col xs ={9}>
+				<Col xs ={8}>
 					<FormControl 
 						bsSize = "lg"
 						employee_id = {employee_id}
@@ -264,23 +351,19 @@ class EditEmployee extends React.Component{
 					
 					</FormControl>
 				</Col>
-				<Col xs = {3}>
+				<Col xs = {4}>
 					<Button 
 					onClick = {this.handleEmployeeDelete}
 					employee_id = {employee.id} 
 					bsStyle = "default" 
-					bsSize = "lg">
-						Delete Employee
+					bsSize = "lg"
+					block>
+						<Glyphicon glyph="trash" /> Delete
 					</Button>
 				
 				</Col>
 				</Row>
-				<Button
-				onClick = {this.closeModal}
-				bsStyle ="primary"
-				block
-				>Done
-				</Button>
+				
 			</Modal>
 			
 			
@@ -311,9 +394,68 @@ class GetSales extends React.Component{
 		const isOpen = this.props.isOpen
 		const day = this.props.day
 		const week = ['Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] 
-				
+		
+		const pos = this.props.pos;
+		const width = 600;
+		const height = 200;
+		var modal_style={
+			overlay: {
+			  position: 'fixed',
+			  top: 0,
+			  left: 0,
+			  right: 0,
+			  bottom: 0,
+			  backgroundColor: 'rgba(255, 255, 255, 0.75)'
+			},
+			content: {
+			  position: 'fixed',
+			  top: '40px',
+			  left: '40px',
+			  right: '40px',
+			  bottom: '40px',
+			  border: '1px solid #ccc',
+			  background: '#fff',
+			  overflow: 'none',
+			  WebkitOverflowScrolling: 'touch',
+			  borderRadius: '4px',
+			  outline: 'none',
+			  padding: '20px',
+			 
+			}
+		  };
+		if(isOpen){ 
+			console.log(pos.y + "..." +pos.x)
+		if(pos.y < height){
+			modal_style.content.top = pos.y +5;
+			modal_style.content.bottom = window.innerHeight - pos.y - height;
+			
+		}else if (pos.y > window.innerHeight - height){
+			modal_style.content.top = pos.y - height;
+			modal_style.content.bottom =window.innerHeight - pos.y ;
+		}else{
+			modal_style.content.top = pos.y - height/2;
+			modal_style.content.bottom =window.innerHeight -  pos.y - height/2;
+		}
+			
+		if(pos.x > window.innerWidth - width){
+			
+			modal_style.content.right =window.innerWidth- pos.x +5;
+			modal_style.content.left =pos.x - width;
+		} else if (pos.x < width){
+			modal_style.content.left = pos.x+5;
+			modal_style.content.right =window.innerWidth-pos.x-width;
+		}else{
+			modal_style.content.right = window.innerWidth-pos.x  - width/2;
+			modal_style.content.left = pos.x -width/2;
+			
+		}
+	  }
+		
+		
+		
 		return(<div>
 			<Modal 
+				style={modal_style}
 				appElement = {appElement}
 				isOpen={isOpen}
 				onRequestClose={this.closeModal}
@@ -363,9 +505,68 @@ class GetTips extends React.Component{
 		const isOpen = this.props.isOpen
 		const day = this.props.day
 		const week = ['Monday', 'Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] 
-				
+		
+		const pos = this.props.pos;
+		const width = 600;
+		const height = 200;
+		var modal_style={
+			overlay: {
+			  position: 'fixed',
+			  top: 0,
+			  left: 0,
+			  right: 0,
+			  bottom: 0,
+			  backgroundColor: 'rgba(255, 255, 255, 0.75)'
+			},
+			content: {
+			  position: 'fixed',
+			  top: '40px',
+			  left: '40px',
+			  right: '40px',
+			  bottom: '40px',
+			  border: '1px solid #ccc',
+			  background: '#fff',
+			  overflow: 'none',
+			  WebkitOverflowScrolling: 'touch',
+			  borderRadius: '4px',
+			  outline: 'none',
+			  padding: '20px',
+			 
+			}
+		  };
+		if(isOpen){ 
+			console.log(pos.y + "..." +pos.x)
+		if(pos.y < height){
+			modal_style.content.top = pos.y +5;
+			modal_style.content.bottom = window.innerHeight - pos.y - height;
+			
+		}else if (pos.y > window.innerHeight - height){
+			modal_style.content.top = pos.y - height;
+			modal_style.content.bottom =window.innerHeight - pos.y ;
+		}else{
+			modal_style.content.top = pos.y - height/2;
+			modal_style.content.bottom =window.innerHeight -  pos.y - height/2;
+		}
+			
+		if(pos.x > window.innerWidth - width){
+			
+			modal_style.content.right =window.innerWidth- pos.x +5;
+			modal_style.content.left =pos.x - width;
+		} else if (pos.x < width){
+			modal_style.content.left = pos.x+5;
+			modal_style.content.right =window.innerWidth-pos.x-width;
+		}else{
+			modal_style.content.right = window.innerWidth-pos.x  - width/2;
+			modal_style.content.left = pos.x -width/2;
+			
+		}
+	  }
+		
+		
+		
 		return(<div>
 			<Modal 
+				style = {modal_style}
 				appElement = {appElement}
 				isOpen={isOpen}
 				onRequestClose={this.closeModal}
@@ -387,6 +588,85 @@ class GetTips extends React.Component{
 	}
 }
 
+
+class PrevSchedule  extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleClick = this.handleClick.bind(this);
+	}
+	
+	handleClick(e){
+	 this.props.handleClick(e);	
+	}
+	
+	
+	render(){
+		var  style = {display:"inline-block", width:"50%",  padding:"0", margin:"0"}
+		return(
+		<div
+			style = {style}
+		>
+			<Button	
+			block
+			bsSize = "lg"
+			bsStyle="primary" 
+			onClick= {this.handleClick}
+			>
+				<Glyphicon glyph = "arrow-left" />
+			</Button>
+		</div>);
+	}
+	
+}
+
+
+class NextSchedule  extends React.Component{
+	constructor(props){
+		super(props);
+		this.handleClick = this.handleClick.bind(this);
+	}
+	
+	handleClick(e){
+	 this.props.handleClick(e);	
+	}
+	
+	
+	render(){
+		var  style = {display:"inline-block", width:"50%",  padding:"0", margin:"0"}
+		return(
+		 <div style = {style}>
+			<Button	
+			block
+			bsSize = "lg"
+			bsStyle="primary" 
+			onClick= {this.handleClick}
+			>
+			<Glyphicon glyph = "arrow-right" />
+			</Button>
+		</div>
+		);
+	}
+	
+}
+
+class PrintSchedule extends React.Component{
+	render(){
+		var schedule_id = this.props.schedule_id;
+		var link = "./print.html#" + schedule_id;
+		return(<a href = {link} target = "_blank">
+			<Button	
+			bsSize = "lg"
+			bsStyle="primary" 
+			block
+			
+			>
+				<Glyphicon glyph = "print" /> Schedule
+			</Button>
+			</a>
+		);
+			
+	}
+}
 class NewSchedule  extends React.Component{
 	constructor(props){
 		super(props);
@@ -399,20 +679,17 @@ class NewSchedule  extends React.Component{
 	
 	
 	render(){
-		var  style = {position:"fixed", minWidth:"100px",  top:40, padding:"0", margin:"0", height:"30px"}
 		return(
-		<div
-			style = {style}
-		>
+		
 			<Button	
-			
+			bsSize = "lg"
 			bsStyle="primary" 
 			block
 			onClick= {this.handleClick}
 			>
 				New Schedule
 			</Button>
-		</div>);
+	);
 	}
 	
 }
@@ -429,20 +706,29 @@ class NewEmployee extends React.Component{
 	
 	
 	render(){
-		var style = {position:"fixed", minWidth:"100px", top:5, padding:"0", margin:"0", height:"30px"}
 		return(
-		<div
-			style = {style}
-		>
-			<Button	
 			
-			bsStyle="primary" 
+				
+			<Button	
 			block
+			style = {{background:"lightgrey", color:"#222", height:"45px", fontSize:"18px"}}
+			bsSize = "lg"
 			onClick= {this.handleClick}
 			>
-				New Employee
+			<Row>
+			<Col xs ={2}> 
+			 <Glyphicon glyph = "plus" /> Employee 
+			</Col>
+			<Col xs = {8}>
+				 <Glyphicon glyph = "plus" />
+				 <Glyphicon glyph = "plus" />
+			</Col>
+			<Col xs = {2}>
+			</Col>
+			</Row>
 			</Button>
-		</div>);
+		
+		);
 	}
 	
 }
@@ -456,7 +742,7 @@ class TitleRow extends React.Component{
 		const end_date = this.props.end_date;
 		const days = [];
 		
-	var headline = "Schedule:  " + new Date(start_date).toLocaleDateString("en", { month: 'long', day: 'numeric'});
+	var headline = new Date(start_date).toLocaleDateString("en", { month: 'long', day: 'numeric'});
 	headline = headline + " to " + new Date(end_date).toLocaleDateString("en", { month: 'long', day: 'numeric'});
 		
 		week.forEach((text)=> {
@@ -469,7 +755,7 @@ class TitleRow extends React.Component{
 		
 		return(
 		<div>
-		  <h2>  {headline} </h2>
+		  <h2 style ={{fontFamily:"courier"}}>  {headline} </h2>
 		<Row>
 		<Col xs = {2}>
 		</Col>
@@ -491,11 +777,24 @@ class EmployeeRow extends React.Component{
 		super(props);
 		this.handleNameClick = this.handleNameClick.bind(this);
 		this.handleShiftClick = this.handleShiftClick.bind(this);
-		this.handleNewShiftClick = this.handleNewShiftClick.bind(this);
+		this.handleNewShiftClick = this.handleNewShiftClick.bind(this); 
+		
+		
+		
 	}
-	
+
 	handleNameClick(e){
-		this.props.handleNameClick(e.target.getAttribute("employee_id"));
+		var pos = {}
+		pos.x = e.pageX
+		pos.y = e.pageY
+		
+		if (pos.x === undefined) {
+			pos.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			pos.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }	
+		
+        
+		this.props.handleNameClick(e.target.getAttribute("employee_id"), pos);
 	}
 	
 	handleShiftClick(id, pos){
@@ -571,7 +870,9 @@ class EmployeeDay extends React.Component{
 		super(props);
 		this.handleShiftClick = this.handleShiftClick.bind(this);
 		this.handleNewShiftClick = this.handleNewShiftClick.bind(this);
+		
 	}
+	
 	
 	handleShiftClick(e){
 		var pos = {}
@@ -622,19 +923,24 @@ class EmployeeDay extends React.Component{
 		var x;
 		var btns = [];
 		var new_shift_style = {background:"white", color:"darkgrey", height:70-shifts.length*35, padding:"0", margin:0, border:"none", borderRadius:"0"}
-		var shift_style =  {color:"rgba(10,10,10,70)", height:35, top:"0", padding:"0",  margin:0, border:"none", borderRadius:"0"}
+		var shift_style =  {height:35, top:"0", padding:"0",  margin:0, border:"none", borderRadius:"0"}
 		for(x=0;x<shifts.length;++x){
 			btns.push(
+				
+						
 				<Button
+					block
 					style = {shift_style}
 					bsStyle="primary"
 					onClick = {this.handleShiftClick}
 					shift = {shifts[x].id}
 					key = {shifts[x].id}
-					block
+					
 				> {shifts[x].start_time} - {shifts[x].end_time}
 				
 				</Button>
+				
+				
 				);
 		}
 		if(shifts.length < 2){
@@ -666,7 +972,16 @@ class SalesTotal extends React.Component{
 	}
 	
 	handleSalesClick(e){
-		this.props.onClickHandler(e.target.getAttribute("day"));
+		var pos = {}
+		pos.x = e.pageX
+		pos.y = e.pageY
+		
+		if (pos.x === undefined) {
+			pos.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			pos.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }	
+		
+		this.props.onClickHandler(e.target.getAttribute("day"), pos);
 	}
 	
 	render(){
@@ -764,7 +1079,16 @@ class TipsTotal extends React.Component{
 	}
 	
 	handleTipsClick(e){
-		this.props.onClickHandler(e.target.getAttribute("day"));
+		var pos = {}
+		pos.x = e.pageX
+		pos.y = e.pageY
+		
+		if (pos.x === undefined) {
+			pos.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			pos.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }	
+		
+		this.props.onClickHandler(e.target.getAttribute("day"), pos);
 	}
 	
 	render(){
@@ -838,7 +1162,7 @@ class Schedule extends React.Component{
 			modals: {
 				setShift:false,
 				setShift_shift:{},
-				setShift_pos:{x:0, y:0},
+				pos:{x:0, y:0},
 				setSales:false,
 				setSales_day:0,
 				setTips:false,
@@ -858,6 +1182,8 @@ class Schedule extends React.Component{
 		this.clickTime = this.clickTime.bind(this);
 		this.saveShift = this.saveShift.bind(this);
 		this.closeShift = this.closeShift.bind(this);
+		this.deleteShift = this.deleteShift.bind(this);
+		
 		
 		this.openEdit = this.openEdit.bind(this);
 		this.closeEdit = this.closeEdit.bind(this);
@@ -875,6 +1201,8 @@ class Schedule extends React.Component{
 		this.loadSchedule = this.loadSchedule.bind(this);
 		this.saveSchedule = this.saveSchedule.bind(this);
 		this.newSchedule = this.newSchedule.bind(this);
+		this.prevSchedule = this.prevSchedule.bind(this);
+		this.nextSchedule = this.nextSchedule.bind(this);
 				
     }
     
@@ -886,7 +1214,48 @@ class Schedule extends React.Component{
     	
     }
     
+    prevSchedule(){
+    	var schedule = this.state.schedule;
+    	var list = JSON.parse(window.localStorage.getItem("schedule_list"))
+    	var x
+    	var found = 0;
+    	for (x=0;x<list.length;++x){
+    		if(list[x] == schedule.schedule_id){
+    			found = 1;
+    			if(x>0){
+    				this.loadSchedule(list[x-1]);
+    			}else{
+    				alert ("No Next Schedule")
+    			}
+    				
+    			
+    			
+    		}
+    		
+    	}
+    }
     
+    nextSchedule(){
+    	var schedule = this.state.schedule;
+    	var list = JSON.parse(window.localStorage.getItem("schedule_list"))
+    	var x
+    	var found = 0;
+    	for (x=0;x<list.length;++x){
+    		if(list[x] == schedule.schedule_id){
+    			found = 1;
+    			if(x<list.length-1){
+    				this.loadSchedule(list[x+1]);
+    			}else{
+    				alert ("No Previous Schedule")
+    			}
+    				
+    			
+    			
+    		}
+    		
+    	}
+    	
+    }
     
     newSchedule(){
     	var state = this.state;
@@ -921,13 +1290,14 @@ class Schedule extends React.Component{
     	var data;
     	var list;
     	var schedule_id;
-    	id = id || 0
+    	
     	if(window.localStorage.getItem("schedule_list") && JSON.parse(window.localStorage.getItem("schedule_list")).length > 0 ){
 			list =  JSON.parse(window.localStorage.getItem("schedule_list"))
     		if(list.indexOf(id) === -1){
 				schedule_id = list[list.length-1];
+				console.log("could not find schedule: Loading Most Recent Schedule");
 			} else{
-				schedule_id = list[list.indexOf(id)];
+				schedule_id = id;
 			}
 						
 			data = JSON.parse(window.localStorage.getItem(schedule_id));
@@ -983,7 +1353,7 @@ class Schedule extends React.Component{
     	var modals = this.state.modals;
 		modals.setShift=true;
 		modals.setShift_shift = shift;
-		modals.setShift_pos = pos;
+		modals.pos = pos;
 		this.setState({modals});
 	
     }
@@ -1047,7 +1417,24 @@ class Schedule extends React.Component{
     	this.saveSchedule();
     	
     }
-    
+    deleteShift(){
+    	var modals= this.state.modals;
+    	var shifts = this.state.shifts;
+    	var id = modals.setShift_shift.id;
+    	var x;
+    	
+    	for(x=0;x<shifts.length;++x){
+    		if(shifts[x].id == id){ 
+				shifts.splice(x, 1 );
+				this.setState(shifts);
+				this.closeShift();
+				return;
+			}
+    	}
+    	console.log("error splicing shifts:  could not find ID")
+    	this.closeShift();
+    	
+    }
     closeShift(){
     	
     	var modals = this.state.modals;
@@ -1055,7 +1442,7 @@ class Schedule extends React.Component{
 		this.setState({modals});    	
     }
         
-    addEmployee(){
+    addEmployee(pos){
     	var newEmployee = {}
     	var employees = this.state.employees
     	newEmployee.name=""
@@ -1065,14 +1452,19 @@ class Schedule extends React.Component{
     	this.setState({employees:employees})
     	this.openEdit(newEmployee.id);
     	
+    	var modals = this.state.modals;
+		modals.pos = pos;
+		this.setState({modals});
+    	
     }
     
    
-    openEdit(id){
+    openEdit(id, pos){
     	
     	var modals = this.state.modals;
 		modals.editEmployee=true;
 		modals.editEmployee_id = id;
+		modals.pos = pos;
 		this.setState({modals});
     		
     }
@@ -1116,10 +1508,13 @@ class Schedule extends React.Component{
 		this.saveSchedule();
 	}
 	
-	setSales(day){
+	setSales(day, pos){
 		const modals = this.state.modals;
 		modals.setSales=true;
 		modals.setSales_day = day;
+				
+		modals.pos = pos;
+	
 		this.setState({modals});
 		
 		
@@ -1140,10 +1535,12 @@ class Schedule extends React.Component{
 		this.setState({modals});
 	}
 	
-	setTips(day){
+	setTips(day, pos){
 		const modals = this.state.modals;
 		modals.setTips=true;
 		modals.setTips_day = day;
+		modals.pos = pos;
+
 		this.setState({modals});
 	}
 	
@@ -1184,6 +1581,7 @@ class Schedule extends React.Component{
  	
 	  rows.push(<EmployeeRow 
 	  	  		shifts = {employee_shifts[x]}
+	  	  	
 	  	  		handleNameClick={this.openEdit}
 	  	  		handleNewShiftClick = {this.newShiftClick}
 	  	  		handleShiftClick = {this.openShift}
@@ -1202,6 +1600,13 @@ class Schedule extends React.Component{
 	 	 	  week = {this.state.schedule.week}
 	 	 	/>
 	 	 	{rows}
+	 	 	
+	 		 	 	
+	 	 	<NewEmployee 
+	 	 		handleClick = {this.addEmployee}
+	 	 		employees = {this.state.employees}
+	 	 		/>
+	 	 	
 	 	 	<div style={{fontSize:"30px" }} >
 	 	 	<HoursTotal
 	 	 		shifts = {employee_shifts}
@@ -1215,21 +1620,28 @@ class Schedule extends React.Component{
 	 	 	
 	 	 		
 	 	 	</div>	
-	 	 	<DatePicker
-				selected={this.state.schedule.startDate}
-				onChange={this.handleDateChange}
-			/>
+	 	 	
 			{/*Floating Buttons : */}
-			<NewEmployee 
-	 	 		handleClick = {this.addEmployee}
-	 	 		employees = {this.state.employees}
-	 	 		/>
+			<div  style = {{position:"fixed", minWidth:"100px",  top:3}}>
+			
 	 	 	<NewSchedule
 	 	 		handleClick = {this.newSchedule}
 	 	 		/>
+	 	 	<PrintSchedule 
+	 	 		schedule_id = {this.state.schedule.schedule_id}
+	 	 		/>
+	 	 	<PrevSchedule
+	 	 		handleClick = {this.prevSchedule}
+	 	 		/>
+	 	 	<NextSchedule 
+	 	 		handleClick = {this.nextSchedule}
+	 	 		/>
+	 	 	</div>	
+	 	 		
 	 	 	
 	 	 	{/*Models : */}
 	 	 	<GetShift
+				handleDeleteClick = {this.deleteShift}
 	 	 		handleMouseEnter={this.mouseOverTime}
 	 	 		handleClick = {this.clickTime}
 	 	 		saveShift = {this.saveShift}
@@ -1237,7 +1649,7 @@ class Schedule extends React.Component{
 	 	 		isOpen = {this.state.modals.setShift}
 	 	 		shift = {this.state.modals.setShift_shift}
 	 	 		shift_helper = {this.state.shift_helper}
-	 	 		pos = {this.state.modals.setShift_pos}
+	 	 		pos = {this.state.modals.pos}
 	 	 		appElement = "#root"
 	 	 		
 	 	 		
@@ -1246,12 +1658,14 @@ class Schedule extends React.Component{
 				saveEmployee ={this.saveEmployee}
 				deleteEmployee ={this.deleteEmployee}
 				closeModal = {this.closeEdit}
+				pos = {this.state.modals.pos}
 				
 				employees = {this.state.employees}
 				isOpen = {this.state.modals.editEmployee}
 				id = {this.state.modals.editEmployee_id}
 				/>
 			<GetSales 
+				pos = {this.state.modals.pos}
 				saveSales = {this.saveSales}
 				closeModal = {this.closeSales}
 				sales = {this.state.totals.sales}
@@ -1260,6 +1674,7 @@ class Schedule extends React.Component{
 				
 				/>
 			<GetTips 
+				pos = {this.state.modals.pos}
 				saveTips = {this.saveTips}
 				closeModal = {this.closeTips}
 				tips = {this.state.totals.tips}
@@ -1284,8 +1699,8 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to J.Fresco Scheduler</h1>
+          <Glyphicon glyph = "time" className="App-logo" alt="logo" style={{height:"60px", fontSize:"58px"}}/>
+          <h1 className="App-title" style={{fontSize:"38px", fontFamily:"Courier", fontWeight:"bold"}}>Johnny Fresco's Scheduler</h1>
         </header>
         <div className="App-intro">
            <Schedule />

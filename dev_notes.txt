@@ -1,0 +1,23 @@
+Schedule Application
+Project Start Date:  1/24/2018
+
+version 1 committed 1/30/2018
+hotfix: 2/3/2018 --Added Print Functionality;
+
+	
+Future Features ToDo:
+
+Drag&Drop
+Delete Shift
+Change Schedule
+Application Init
+Networking
+
+
+
+PissOnTheirGraves.com
+
+To Do upload image.
+google maps.
+
+
