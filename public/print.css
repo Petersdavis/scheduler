@@ -1,0 +1,26 @@
+
+
+.printCol{
+	width:1in;
+	border-style:solid;
+	border-width:1px;
+	border-color:darkgrey;
+	font-size:14px;
+	font-weight:'bold';
+	text-align: center;
+	
+}
+.printCell{
+	text-align: center;
+	width:0.75in;
+	width:1in;
+	border-style:solid;
+	border-width:1px;
+	border-color:lightgrey;
+	padding-bottom:0.25in;
+}
+
+.printRow{
+	height:0.4in;
+	
+}

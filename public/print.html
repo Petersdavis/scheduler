@@ -1,0 +1,153 @@
+<HTML>
+<head>
+<link rel="stylesheet" href="./print.css">
+<script  src="http://code.jquery.com/jquery-3.3.1.min.js"  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="  crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div id = "schedule">
+
+
+</div>
+</body>
+
+<script>
+
+
+$( document ).ready(function() {
+ getSchedule();
+		
+})
+
+function getSchedule(){
+  var schedule, schedule_id;
+  schedule_id = location.hash;
+  schedule_id = schedule_id.slice(1);
+  if(schedule = window.localStorage.getItem(schedule_id)){
+  	  if(schedule = JSON.parse(schedule)){
+		printSchedule(schedule);  
+  	  }else{
+  	  	  noSchedule(schedule_id);
+  	  }
+  }else{
+  	  noSchedule(schedule_id);
+  }
+}
+
+function noSchedule(schedule_id){
+	var frag =document.createDocumentFragment() 
+	var h1 = $("<h1>").append("COULD NOT LOAD SCHEDULE ID: "+ schedule_id);
+	$(frag).append(h1);
+	$("#schedule").empty().append(frag);
+	
+	
+}
+
+
+
+
+
+function printSchedule(schedule){
+	var x,y,z;
+	var frag;
+		
+	frag =document.createDocumentFragment() 
+	var headline = "Schedule:  " + new Date(schedule.schedule.start_date).toLocaleDateString("en", { month: 'long', day: 'numeric'});
+	headline = headline + " to " + new Date(schedule.schedule.end_date).toLocaleDateString("en", { month: 'long', day: 'numeric'});
+	headline = $("<h2>").append(headline);
+	
+	$(frag).append(headline);
+	
+	var row, table, cell, total;
+	table = $("<table>");
+	row = $("<tr>", {class:"printRow"}).append("<td>", {class:"printCol"});
+	//days
+	var week = schedule.schedule.week;
+	for(x=0;x<week.length;++x){
+		cell = $("<th>", {class:"printCell"}).append(week[x]);
+		$(row).append(cell);		
+	}
+	total = $("<th>", {class:"printCol"}).append("Total: ");
+	$(row).append(total);
+	$(table).append(row);
+	
+	var employee, name, total_hours;
+	//employees;
+	for(x=0;x<schedule.employees.length;++x){
+	  employee = schedule.employees[x];
+	  name = employee.name;
+	  name = $("<th>", {class:"printCol"}).append(name);
+	  row = $("<tr>", {class:"printRow"}).append(name);
+	  total_hours = 0;
+	  for(y=0;y<7;++y){
+	  	  cell = $("<td>", {class:"printCell"})
+	  	  for(z=0;z<schedule.shifts.length;++z){
+	  	  	  if(schedule.shifts[z].employee_id == employee.id && schedule.shifts[z].day == y){
+	  	  	  	  
+	  	  	  	shift=schedule.shifts[z]
+	  	  	  	total_hours = total_hours + parseFloat(shift.hours);
+	  	  	  	shift = shift.start_time +"--" + shift.end_time;
+	  	  	  	shift = $("<div>").append(shift);
+  	  	  	    $(cell).append(shift);
+	  	  	  	  
+	  	  	  }
+	  	  }
+	  	  $(row).append(cell) 
+	  }
+	  total = $("<th>", {class:"printCell"}).append(total_hours + " Hrs");
+	  $(row).append(total);
+	  $(table).append(row);
+	}
+	  
+	  
+	  cell = $("<td>", {class:"printCol"}).append("Hours:");
+	  row = $("<tr>", {class:"printRow"}).append(cell)
+	  for(x=0;x<7;++x){
+		  total_hours = 0;
+		  for(y=0;y<schedule.shifts.length;++y){
+			shift = schedule.shifts[y]
+			  if(shift.day == x){
+				total_hours = total_hours+parseFloat(shift.hours);
+							
+			  }
+		  }
+		  cell = $("<th>", {class:"printCell"}).append(total_hours + " Hrs");
+		  $(row).append(cell);
+	  }
+		 
+	   cell = $("<td>", {class:"printCol"})	  
+	   $(row).append(cell);	  
+	  $(table).append(row);
+	  
+	  cell = $("<th>", {class:"printCol"}).append("TIPS:");
+	  row = $("<tr>", {class:"printRow"}).append(cell)
+	  for(x=0;x<7;++x){
+	  	  cell = $("<td>", {class:"printCell"})
+	  	  $(row).append(cell);
+	  }
+	 	 
+	   cell = $("<td>", {class:"printCol"})	  
+	   $(row).append(cell);	  
+	  $(table).append(row);	  
+	  	  
+	  cell = $("<th>", {class:"printCol"}).append("SALES:");
+	  row = $("<tr>", {class:"printRow"}).append(cell)
+	  for(x=0;x<7;++x){
+	  	  cell = $("<td>", {class:"printCell"})
+	  	  $(row).append(cell);
+	  }
+	 	 
+	  cell = $("<td>", {class:"printCol"});	  
+	  $(row).append(cell);	  
+	  $(table).append(row);	  
+	  $(frag).append(table);
+	  $("#schedule").empty().append(frag);
+
+}
+</script>
+
+
+
+
+</HTML>
+
