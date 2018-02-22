@@ -17,10 +17,12 @@
 	border-style:solid;
 	border-width:1px;
 	border-color:lightgrey;
-	padding-bottom:0.25in;
+	padding:0;
 }
 
 .printRow{
-	height:0.4in;
+	height:0.36in;
+	font-size:11px;
+	vertical-align:top;
 	
 }
